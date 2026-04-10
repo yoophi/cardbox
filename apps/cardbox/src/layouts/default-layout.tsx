@@ -5,7 +5,7 @@ import { Separator } from "@cardbox/ui/components/ui/separator"
 
 export function DefaultLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex h-svh flex-col overflow-hidden">
       <header className="flex h-12 items-center justify-between px-4">
         <span className="text-base font-semibold tracking-tight">Cardbox</span>
         <Button variant="ghost" size="icon">

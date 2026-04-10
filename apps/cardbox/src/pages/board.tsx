@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import {
   DragDropContext,
   Droppable,
@@ -42,6 +42,12 @@ const initialSwimlanes: Swimlane[] = [
       { id: "16", title: "React Server Components", description: "RSC 동작 원리와 제약사항" },
       { id: "17", title: "번들 사이즈 최적화", description: "트리셰이킹과 코드 스플리팅 전략" },
       { id: "18", title: "Git Worktree 활용법" },
+      { id: "25", title: "SWR vs React Query", description: "데이터 페칭 라이브러리 비교" },
+      { id: "26", title: "WASM 기초", description: "WebAssembly 동작 원리" },
+      { id: "27", title: "i18n 전략", description: "다국어 지원 아키텍처 설계" },
+      { id: "28", title: "Storybook 컴포넌트 문서화" },
+      { id: "29", title: "React Compiler", description: "자동 메모이제이션의 미래" },
+      { id: "30", title: "Edge Runtime 이해하기" },
     ],
   },
   {
@@ -70,6 +76,99 @@ const initialSwimlanes: Swimlane[] = [
   },
 ]
 
+function ScrollFade({ targetRef }: { targetRef: React.RefObject<HTMLElement | null> }) {
+  const [showTop, setShowTop] = useState(false)
+  const [showBottom, setShowBottom] = useState(false)
+
+  const update = useCallback(() => {
+    const el = targetRef.current
+    if (!el) return
+    setShowTop(el.scrollTop > 8)
+    setShowBottom(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+  }, [targetRef])
+
+  useEffect(() => {
+    const el = targetRef.current
+    if (!el) return
+    update()
+    el.addEventListener("scroll", update, { passive: true })
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener("scroll", update)
+      ro.disconnect()
+    }
+  }, [targetRef, update])
+
+  return (
+    <>
+      {showTop && (
+        <div className="pointer-events-none absolute top-0 right-0 left-0 z-10 h-6 rounded-t-lg bg-gradient-to-b from-background to-transparent" />
+      )}
+      {showBottom && (
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-6 rounded-b-lg bg-gradient-to-t from-background to-transparent" />
+      )}
+    </>
+  )
+}
+
+function LaneDroppable({ lane }: { lane: Swimlane }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <Droppable droppableId={lane.id}>
+      {(provided, snapshot) => (
+        <div className="relative min-h-0 flex-1">
+          <ScrollFade targetRef={scrollRef} />
+          <div
+            ref={(el) => {
+              provided.innerRef(el)
+              ;(scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el
+            }}
+            {...provided.droppableProps}
+            className={`scrollbar-thin flex h-full flex-col gap-2 overflow-y-auto rounded-lg p-1 transition-colors ${snapshot.isDraggingOver ? "bg-muted/60" : ""}`}
+          >
+            {lane.cards.map((card, index) => (
+              <Draggable key={card.id} draggableId={card.id} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    style={provided.draggableProps.style}
+                  >
+                    <Card
+                      size="sm"
+                      className={`border border-border shadow-sm transition-shadow ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30" : "hover:shadow-md"}`}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start gap-2">
+                          <span
+                            {...provided.dragHandleProps}
+                            className="mt-0.5 shrink-0 cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
+                          >
+                            <GripVertical className="size-4" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <CardTitle>{card.title}</CardTitle>
+                            {card.description && (
+                              <CardDescription>{card.description}</CardDescription>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        </div>
+      )}
+    </Droppable>
+  )
+}
+
 export default function BoardPage() {
   const [swimlanes, setSwimlanes] = useState<Swimlane[]>(initialSwimlanes)
 
@@ -92,58 +191,15 @@ export default function BoardPage() {
         {swimlanes.map((lane) => (
           <div
             key={lane.id}
-            className="flex w-72 shrink-0 flex-col"
+            className="flex w-72 shrink-0 flex-col min-h-0"
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between bg-background px-1 pb-3">
+            <div className="flex items-center justify-between px-1 pb-3">
               <h2 className="text-sm font-semibold">{lane.title}</h2>
               <span className="text-xs text-muted-foreground">
                 {lane.cards.length}
               </span>
             </div>
-            <Droppable droppableId={lane.id}>
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg p-1 transition-colors ${snapshot.isDraggingOver ? "bg-muted/60" : ""}`}
-                >
-                  {lane.cards.map((card, index) => (
-                    <Draggable key={card.id} draggableId={card.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          style={provided.draggableProps.style}
-                        >
-                          <Card
-                            size="sm"
-                            className={`border border-border shadow-sm transition-shadow ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30" : "hover:shadow-md"}`}
-                          >
-                            <CardHeader>
-                              <div className="flex items-start gap-2">
-                                <span
-                                  {...provided.dragHandleProps}
-                                  className="mt-0.5 shrink-0 cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
-                                >
-                                  <GripVertical className="size-4" />
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  <CardTitle>{card.title}</CardTitle>
-                                  {card.description && (
-                                    <CardDescription>{card.description}</CardDescription>
-                                  )}
-                                </div>
-                              </div>
-                            </CardHeader>
-                          </Card>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+            <LaneDroppable lane={lane} />
           </div>
         ))}
       </div>
