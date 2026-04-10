@@ -25,7 +25,7 @@ export function CardDetailDialog({ card, laneName, open, onOpenChange }: CardDet
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="flex h-[400px] w-[560px] max-w-[calc(100%-2rem)] flex-col sm:max-w-[560px]">
         <DialogHeader>
           <div className="flex items-start justify-between gap-4 pr-6">
             <div className="flex flex-col gap-2">
@@ -40,11 +40,11 @@ export function CardDetailDialog({ card, laneName, open, onOpenChange }: CardDet
           </div>
         </DialogHeader>
         {card.content && (
-          <div className="whitespace-pre-wrap text-sm text-foreground/80 leading-relaxed">
+          <div className="flex-1 overflow-y-auto whitespace-pre-wrap text-sm text-foreground/80 leading-relaxed">
             {card.content}
           </div>
         )}
-        <div className="flex justify-end pt-2">
+        <div className="flex shrink-0 justify-end pt-2">
           <Button
             variant="outline"
             size="sm"
