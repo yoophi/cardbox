@@ -1,0 +1,13 @@
+{
+  "name": "cardbox",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @cardbox/app dev",
+    "build": "pnpm --filter @cardbox/app build",
+    "preview": "pnpm --filter @cardbox/app preview"
+  },
+  "keywords": [],
+  "author": "Pyunghyuk Yoo",
+  "license": "ISC"
+}
