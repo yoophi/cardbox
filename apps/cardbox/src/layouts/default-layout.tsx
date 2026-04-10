@@ -14,7 +14,7 @@ export function DefaultLayout({ children }: { children: ReactNode }) {
         </Button>
       </header>
       <Separator />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 overflow-hidden">{children}</main>
     </div>
   )
 }
