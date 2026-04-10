@@ -3,6 +3,8 @@
 # Usage: ./fix-imports.sh
 
 find src/components/ui -name '*.tsx' -exec sed -i '' \
-  's|from "@/lib/utils"|from "../../lib/utils"|g' {} +
+  -e 's|from "@/lib/utils"|from "../../lib/utils"|g' \
+  -e 's|from "@/components/ui/\([^"]*\)"|from "./\1"|g' \
+  {} +
 
 echo "Fixed @/ imports to relative paths."
